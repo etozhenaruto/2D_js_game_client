@@ -1,27 +1,38 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router';
-import useLoby from '../../hooks/useLoby';
+import { useNavigate } from 'react-router-dom';
+
+import { userAPI } from '../../localStoraga/userAPI';
 import socket from '../../socket';
 import { ACTIONS } from '../../socket/actions';
+import { ERRORS } from '../../socket/errors';
 
 import { takeDamge, attack, selectCharacter } from "../../store/characterSlice"
 
 export const Loby = () => {
   const { id: roomID } = useParams();
   const [clients, updateClients] = useState<string[]>([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
-    socket.emit(ACTIONS.JOIN_ROOM, { roomID });
+    if (roomID) {
+      socket.emit(ACTIONS.JOIN_ROOM, { roomID });
+    }
 
-    socket.on(ACTIONS.UPDATE_ROOM, (listOfPLayers) => {
-      updateClients(listOfPLayers)
+    socket.on(ACTIONS.UPDATE_ROOM, (roomInfo) => {
+      updateClients(roomInfo.users)
+    })
+
+    socket.on(ERRORS.ROOM_NOT_FIND, () => {
+      navigate(`/room-not-find`)
     })
 
     return () => {
-      socket.emit(ACTIONS.LEAVE, { roomID, userID: socket.id });
+      if (roomID) {
+        socket.emit(ACTIONS.LEAVE, { roomID });
+      }
     };
-  }, []);
+  }, [roomID]);
 
   return (
     <div style={{
@@ -32,6 +43,7 @@ export const Loby = () => {
       flexWrap: 'wrap',
       height: '100vh',
     }}>
+      CLIENTS
       {clients.map((clientID: any, index: any) => {
         return (
           <div key={clientID} id={clientID}>

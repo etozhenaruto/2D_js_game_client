@@ -2,23 +2,23 @@ import { useState, useEffect, useRef } from 'react';
 import socket from '../../socket';
 import { ACTIONS } from '../../socket/actions';
 import { v4 } from 'uuid';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Iroom } from '../../interfaces/RoomI';
+import { userAPI } from '../../localStoraga/userAPI';
 
 export const LobyList = () => {
-    const [rooms, updateRooms] = useState([]);
+    const [rooms, setRooms] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         socket.on(ACTIONS.SHARE_ROOMS, ({ rooms }) => {
-            updateRooms(rooms);
-            console.log(rooms)
+            setRooms(rooms);
         });
     }, []);
 
     const createRoom = () => {
         const id = v4()
-        socket.emit(ACTIONS.CREATE_ROOM, { roomID: id, userID: socket.id })
+        socket.emit(ACTIONS.CREATE_ROOM, { roomID: id })
         navigate(`/room/${id}`)
     }
 
